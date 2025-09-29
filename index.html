@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentMap</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-blue: #4A6FFF;
+            --accent-teal: #00C49A;
+            --dark-text: #2C3E50;
+            --subtle-text: #8A94A6;
+            --light-bg: #F4F7F9;
+            --white: #FFFFFF;
+            --border-color: #E0E6ED;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        #app {
+            max-width: 420px;
+            min-height: 100vh;
+            margin: auto;
+            background-color: var(--light-bg);
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+            padding-bottom: 80px; /* Space for bottom nav */
+        }
+
+        main {
+            padding: 1rem;
+        }
+        
+        /* --- Bottom Navigation --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 420px;
+            margin: auto;
+            height: 64px;
+            background-color: var(--white);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .nav-button {
+            background: none;
+            border: none;
+            color: var(--subtle-text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            width: 100%;
+            padding: 8px 0;
+            transition: color 0.2s ease-in-out;
+        }
+
+        .nav-button:hover { color: var(--primary-blue); }
+        .nav-button.active { color: var(--primary-blue); }
+        .nav-button svg { width: 24px; height: 24px; }
+
+        /* --- Page & Component Styles --- */
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .page.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section { margin-bottom: 2rem; }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .section-header h2 { font-size: 1.25rem; }
+        .section-header a { font-size: 0.9rem; font-weight: 600; color: var(--primary-blue); text-decoration: none; }
+        
+        .horizontal-scroll { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; }
+        
+        .card {
+            background-color: var(--white);
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        
+        .opportunity-card { width: 250px; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .company-info { display: flex; align-items: center; gap: 0.75rem; }
+        .company-info img { width: 40px; height: 40px; border-radius: 8px; }
+        .company-info p { font-weight: 600; font-size: 0.9rem; color: var(--subtle-text); }
+        .match-tag { background-color: rgba(0, 196, 154, 0.1); color: var(--accent-teal); font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 99px; }
+        .card h3 { margin-top: 0.75rem; color: var(--dark-text); font-size: 1.1rem; }
+        .tags-container { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+        .tag { background-color: var(--light-bg); color: var(--subtle-text); font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; }
+        
+        /* Input & Button Styles */
+        .input-group { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .text-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-secondary {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* Profile Page Skill List */
+        #skill-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        #skill-list li {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .remove-skill-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            font-weight: bold;
+            line-height: 16px;
+        }
+
+        /* Mentor Page */
+        .mentor-card {
+            width: 100%;
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        .mentor-info { display: flex; align-items: center; gap: 1rem; }
+        .mentor-info img { width: 60px; height: 60px; border-radius: 50%; }
+        .mentor-card p { color: var(--subtle-text); font-size: 0.9rem; margin: 0.5rem 0; }
+        #doubt-form { display: none; margin-top: 1rem; }
+        #doubt-text { width: 100%; min-height: 80px; margin-bottom: 0.5rem; }
+        
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <main id="main-content">
+            </main>
+        
+        <nav class="bottom-nav">
+            <button class="nav-button active" data-page="home">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <span>Home</span>
+            </button>
+            <button class="nav-button" data-page="opportunities">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                <span>Opportunities</span>
+            </button>
+            <button class="nav-button" data-page="mentors">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>Mentors</span>
+            </button>
+            <button class="nav-button" data-page="profile">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Profile</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        // --- DATA (In a real app, this comes from a server/API) ---
+        let userSkills = ['JavaScript', 'HTML', 'CSS'];
+
+        const opportunities = [
+            { id: 1, company: 'Google', role: 'Frontend Intern', logo: 'https://cdn4.iconfinder.com/data/icons/logos-brands-in-colors/48/google-prod-logo-512.png', tags: ['📍 Remote', '💰 ₹25k/mo'], skills: ['HTML', 'CSS', 'JavaScript'] },
+            { id: 2, company: 'Microsoft', role: 'UI/UX Designer', logo: 'https://cdn4.iconfinder.com/data/icons/social-media-icons-the-circle-set/48/microsoft_circle-512.png', tags: ['📍 Bangalore'], skills: ['Figma', 'UI Design'] },
+            { id: 3, company: 'Figma', role: 'Full Stack Intern', logo: 'https://cdn3.iconfinder.com/data/icons/designer-skills/128/figma-512.png', tags: ['📍 Remote', '💰 ₹30k/mo'], skills: ['JavaScript', 'React', 'Node.js', 'CSS'] },
+            { id: 4, company: 'Amazon', role: 'React Developer', logo: 'https://cdn3.iconfinder.com/data/icons/social-media-black-white-2/512/BW_Amazon_glyph_svg-512.png', tags: ['📍 Hyderabad'], skills: ['React', 'JavaScript', 'HTML', 'CSS'] },
+        ];
+
+        const mentors = [
+            { id: 1, name: 'Anjali Sharma', title: 'Senior Frontend Developer at Google', photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100', specialty: 'JavaScript' },
+            { id: 2, name: 'Rohan Verma', title: 'Lead Product Designer at Microsoft', photo: 'https://images.unsplash.com/photo-1557862921-37829c790f19?w=100', specialty: 'Figma' },
+            { id: 3, name: 'Priya Patel', title: 'Full Stack Engineer at Figma', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', specialty: 'React' }
+        ];
+
+        // --- TEMPLATING FUNCTIONS ---
+        
+        const createOpportunityCard = (opp) => {
+            const skillMatch = opp.skills.every(skill => userSkills.includes(skill));
+            return `
+                <div class="card opportunity-card">
+                    <div class="card-header">
+                        <div class="company-info">
+                            <img src="${opp.logo}" alt="${opp.company} logo">
+                            <p>${opp.company}</p>
+                        </div>
+                        ${skillMatch ? `<div class="match-tag">✔️ You're a Match!</div>` : ''}
+                    </div>
+                    <h3>${opp.role}</h3>
+                    <div class="tags-container">
+                        ${opp.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                    <div class="tags-container" style="margin-top: 1rem;">
+                        <strong>Skills:</strong> ${opp.skills.map(skill => `<span class="tag">${skill}</span>`).join('')}
+                    </div>
+                </div>`;
+        };
+
+        const createMentorCard = (mentor) => {
+            return `
+                <div class="card mentor-card">
+                    <div class="mentor-info">
+                        <img src="${mentor.photo}" alt="${mentor.name}">
+                        <div>
+                            <h3>${mentor.name}</h3>
+                            <p>${mentor.title}</p>
+                        </div>
+                    </div>
+                    <p><strong>Specialty:</strong> ${mentor.specialty}</p>
+                    <button class="btn-secondary ask-doubt-btn" data-mentor-id="${mentor.id}" data-mentor-name="${mentor.name}">Ask a Doubt</button>
+                </div>
+            `;
+        };
+        
+        // --- PAGE CONTENT TEMPLATES ---
+
+        const homePageContent = `
+            <div class="page active">
+                <header style="margin-bottom: 1.5rem;">
+                    <h1 style="font-size: 1.5rem; color: var(--primary-blue);">TalentMap</h1>
+                    <h2 style="font-size: 2rem; color: var(--dark-text); margin-top: 1rem;">Hello, Aarav 👋</h2>
+                    <p style="color: var(--subtle-text);">Let's kickstart your career today.</p>
+                </header>
+                <section class="section">
+                    <div class="section-header">
+                        <h2>Jobs You Match With</h2>
+                        <a href="#" class="nav-link" data-page="opportunities">See All</a>
+                    </div>
+                    <div class="horizontal-scroll">
+                        ${opportunities.filter(opp => opp.skills.every(skill => userSkills.includes(skill))).map(createOpportunityCard).join('') || `<p>Add more skills on your profile to see matches!</p>`}
+                    </div>
+                </section>
+            </div>`;
+
+        const opportunitiesPageContent = `
+            <div class="page active">
+                <h1 style="font-size: 2rem; margin-bottom: 1rem;">Opportunities</h1>
+                <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Recommended For You</h2>
+                <div class="vertical-list">
+                    ${opportunities.filter(opp => opp.skills.every(skill => userSkills.includes(skill))).map(createOpportunityCard).join('') || `<p>No current jobs match your skills. Add more on the Profile page!</p>`}
+                </div>
+                <hr style="margin: 2rem 0; border-color: var(--border-color);">
+                <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">All Opportunities</h2>
+                <div class="vertical-list">
+                    ${opportunities.map(createOpportunityCard).join('')}
+                </div>
+            </div>`;
+        
+        const mentorsPageContent = `
+            <div class="page active">
+                <h1 style="font-size: 2rem; margin-bottom: 1rem;">Find a Mentor</h1>
+                <div class="vertical-list" id="mentor-list">
+                    ${mentors.map(createMentorCard).join('')}
+                </div>
+                <div id="doubt-form" class="card">
+                    <h3>Ask a doubt to <span id="mentor-name-form"></span></h3>
+                    <textarea id="doubt-text" class="text-input" placeholder="Type your question here..."></textarea>
+                    <button id="submit-doubt-btn" class="btn-primary">Send Doubt</button>
+                </div>
+            </div>`;
+            
+        const profilePageContent = `
+            <div class="page active">
+                <h1 style="font-size: 2rem; margin-bottom: 1rem;">Your Profile</h1>
+                <div class="section">
+                    <h2>Add Your Skills</h2>
+                    <p style="color: var(--subtle-text); margin-bottom: 1rem;">Add skills to get personalized job recommendations.</p>
+                    <div class="input-group">
+                        <input type="text" id="skill-input" class="text-input" placeholder="e.g., React">
+                        <button id="add-skill-btn" class="btn-primary">Add</button>
+                    </div>
+                </div>
+                <div class="section">
+                    <h2>My Skills</h2>
+                    <ul id="skill-list">
+                       </ul>
+                </div>
+            </div>`;
+
+        // --- APP LOGIC ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainContent = document.getElementById('main-content');
+            const navButtons = document.querySelectorAll('.nav-button');
+            
+            const pages = {
+                home: homePageContent,
+                opportunities: opportunitiesPageContent,
+                mentors: mentorsPageContent,
+                profile: profilePageContent,
+            };
+            
+            function showPage(pageId) {
+                mainContent.innerHTML = pages[pageId];
+                navButtons.forEach(button => button.classList.toggle('active', button.dataset.page === pageId));
+                
+                // Add page-specific logic after rendering
+                if (pageId === 'profile') {
+                    renderSkillList();
+                    document.getElementById('add-skill-btn').addEventListener('click', addSkill);
+                    document.getElementById('skill-input').addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') addSkill();
+                    });
+                }
+                if (pageId === 'mentors') {
+                    document.querySelectorAll('.ask-doubt-btn').forEach(btn => {
+                        btn.addEventListener('click', handleAskDoubtClick);
+                    });
+                    document.getElementById('submit-doubt-btn').addEventListener('click', submitDoubt);
+                }
+                attachNavLinks();
+            }
+            
+            // Profile Page Logic
+            function renderSkillList() {
+                const list = document.getElementById('skill-list');
+                list.innerHTML = userSkills.map((skill, index) => 
+                    `<li>${skill} <button class="remove-skill-btn" data-index="${index}">x</button></li>`
+                ).join('');
+                document.querySelectorAll('.remove-skill-btn').forEach(btn => btn.addEventListener('click', removeSkill));
+            }
+
+            function addSkill() {
+                const input = document.getElementById('skill-input');
+                const skill = input.value.trim();
+                if (skill && !userSkills.find(s => s.toLowerCase() === skill.toLowerCase())) {
+                    userSkills.push(skill);
+                    input.value = '';
+                    renderSkillList();
+                }
+            }
+
+            function removeSkill(event) {
+                const index = event.target.dataset.index;
+                userSkills.splice(index, 1);
+                renderSkillList();
+            }
+
+            // Mentor Page Logic
+            function handleAskDoubtClick(event) {
+                const mentorName = event.target.dataset.mentorName;
+                const form = document.getElementById('doubt-form');
+                document.getElementById('mentor-name-form').textContent = mentorName;
+                form.style.display = 'block';
+                form.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            function submitDoubt() {
+                const textArea = document.getElementById('doubt-text');
+                if(textArea.value.trim() === '') {
+                    alert('Please type your doubt before sending.');
+                    return;
+                }
+                alert('Your doubt has been sent! In a real app, this would be sent to the mentor.');
+                textArea.value = '';
+                document.getElementById('doubt-form').style.display = 'none';
+            }
+
+            // General Navigation Logic
+            function handleNavClick(event) {
+                const pageId = event.currentTarget.dataset.page;
+                showPage(pageId);
+            }
+            
+            function attachNavLinks() {
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const pageId = e.currentTarget.dataset.page;
+                        showPage(pageId);
+                    });
+                });
+            }
+
+            navButtons.forEach(button => button.addEventListener('click', handleNavClick));
+
+            // Initial Load
+            showPage('home');
+        });
+    </script>
+</body>
+</html>
